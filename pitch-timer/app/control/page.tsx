@@ -28,6 +28,7 @@ export default function ControlPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [durationInput, setDurationInput] = useState("5:00");
+  const [qaDurationInput, setQaDurationInput] = useState("3:00");
   const [isInitialized, setIsInitialized] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const sessionRef = useRef<Session>(DEFAULT_SESSION);
@@ -44,6 +45,7 @@ export default function ControlPage() {
       setLocalSession(s);
       if (!isInitialized) {
         setDurationInput(formatTime(s.pitchDuration));
+        setQaDurationInput(formatTime(s.qaDuration));
         setIsInitialized(true);
       }
     });
@@ -86,7 +88,23 @@ export default function ControlPage() {
   async function handleReset() {
     await updateSession({
       status: "idle",
+      timeRemaining: session.phase === "pitch" ? session.pitchDuration : session.qaDuration,
+    });
+  }
+
+  async function handleSwitchToPitch() {
+    await updateSession({
+      status: "idle",
+      phase: "pitch",
       timeRemaining: session.pitchDuration,
+    });
+  }
+
+  async function handleSwitchToQA() {
+    await updateSession({
+      status: "idle",
+      phase: "qa",
+      timeRemaining: session.qaDuration,
     });
   }
 
@@ -99,6 +117,7 @@ export default function ControlPage() {
     await setSession({
       ...session,
       status: "idle",
+      phase: "pitch",
       currentTeam: next,
       timeRemaining: session.pitchDuration,
       queue: rest,
@@ -115,6 +134,7 @@ export default function ControlPage() {
     await setSession({
       ...session,
       status: "idle",
+      phase: "pitch",
       currentTeam: team,
       timeRemaining: session.pitchDuration,
       queue: newQueue,
@@ -156,7 +176,16 @@ export default function ControlPage() {
     if (seconds <= 0) return;
     await updateSession({
       pitchDuration: seconds,
-      timeRemaining: seconds,
+      ...(session.phase === "pitch" ? { timeRemaining: seconds } : {}),
+    });
+  }
+
+  async function handleSaveQaDuration() {
+    const seconds = parseDuration(qaDurationInput);
+    if (seconds <= 0) return;
+    await updateSession({
+      qaDuration: seconds,
+      ...(session.phase === "qa" ? { timeRemaining: seconds } : {}),
     });
   }
 
@@ -176,6 +205,7 @@ export default function ControlPage() {
     if (!confirm("Reset everything? This clears all teams and the timer.")) return;
     await setSession(DEFAULT_SESSION);
     setDurationInput("5:00");
+    setQaDurationInput("3:00");
   }
 
   // Drag and drop for queue
@@ -300,6 +330,25 @@ export default function ControlPage() {
                   )}
                 </div>
 
+                <div className="flex gap-2 justify-center mb-2 mt-4">
+                  <button
+                    onClick={handleSwitchToPitch}
+                    className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
+                      session.phase === "pitch" ? "bg-violet-600 text-white" : "bg-white/10 text-gray-400 hover:bg-white/20"
+                    }`}
+                  >
+                    Pitch Phase
+                  </button>
+                  <button
+                    onClick={handleSwitchToQA}
+                    className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
+                      session.phase === "qa" ? "bg-violet-600 text-white" : "bg-white/10 text-gray-400 hover:bg-white/20"
+                    }`}
+                  >
+                    Q&A Phase
+                  </button>
+                </div>
+
                 {/* Big Timer */}
                 <div className={`text-7xl font-mono font-black text-center py-4 ${timeColor}`}>
                   {formatTime(session.timeRemaining)}
@@ -406,8 +455,30 @@ export default function ControlPage() {
                 Set
               </button>
             </div>
-            <p className="text-gray-500 text-xs mt-2">
+            <p className="text-gray-500 text-xs mt-2 mb-4">
               Format: m:ss or total seconds. Current: {formatTime(session.pitchDuration)}
+            </p>
+
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3 mt-6 border-t border-white/10 pt-4">
+              Q&A Duration
+            </h2>
+            <div className="flex gap-2">
+              <input
+                value={qaDurationInput}
+                onChange={(e) => setQaDurationInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveQaDuration()}
+                placeholder="3:00"
+                className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white font-mono text-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                onClick={handleSaveQaDuration}
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg font-medium transition-colors"
+              >
+                Set
+              </button>
+            </div>
+            <p className="text-gray-500 text-xs mt-2">
+              Format: m:ss or total seconds. Current: {formatTime(session.qaDuration)}
             </p>
           </div>
 
