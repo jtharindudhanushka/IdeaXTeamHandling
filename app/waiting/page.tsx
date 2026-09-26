@@ -100,7 +100,7 @@ export default function WaitingPage() {
 
               {/* Label */}
               <p className="text-gray-400 text-base uppercase tracking-widest font-semibold">
-                Currently Pitching
+                {session.phase === "qa" ? "Q&A Session" : "Currently Pitching"}
               </p>
 
               {/* Team name */}
@@ -122,7 +122,7 @@ export default function WaitingPage() {
               </div>
 
               {/* Progress bar */}
-              {session.pitchDuration > 0 && (
+              {(session.phase === "pitch" ? session.pitchDuration : session.qaDuration) > 0 && (
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden w-full">
                   <div
                     className={`h-full rounded-full transition-all duration-1000 ${
@@ -137,7 +137,7 @@ export default function WaitingPage() {
                         0,
                         Math.min(
                           100,
-                          (session.timeRemaining / session.pitchDuration) * 100
+                          (session.timeRemaining / (session.phase === "pitch" ? session.pitchDuration : session.qaDuration)) * 100
                         )
                       )}%`,
                     }}

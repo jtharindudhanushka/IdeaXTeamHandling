@@ -165,7 +165,7 @@ export default function PitchPage() {
             {/* Team Label */}
             <div className="space-y-2">
               <p className="text-gray-400 text-lg uppercase tracking-widest font-semibold">
-                Now Pitching
+                {session.phase === "qa" ? "Q&A Session" : "Now Pitching"}
               </p>
               <h1 className="text-6xl lg:text-7xl font-black text-white leading-tight">
                 {session.currentTeam?.name ?? "—"}
@@ -210,7 +210,7 @@ export default function PitchPage() {
             </div>
 
             {/* Progress bar */}
-            {session.pitchDuration > 0 && (
+            {(session.phase === "pitch" ? session.pitchDuration : session.qaDuration) > 0 && (
               <div className="w-full max-w-2xl">
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                   <div
@@ -222,7 +222,7 @@ export default function PitchPage() {
                         : "bg-emerald-500"
                     }`}
                     style={{
-                      width: `${Math.max(0, Math.min(100, (session.timeRemaining / session.pitchDuration) * 100))}%`,
+                      width: `${Math.max(0, Math.min(100, (session.timeRemaining / (session.phase === "pitch" ? session.pitchDuration : session.qaDuration)) * 100))}%`,
                     }}
                   />
                 </div>
