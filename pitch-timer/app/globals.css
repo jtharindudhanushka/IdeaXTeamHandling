@@ -2,8 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-inter: 'Inter', sans-serif;
+/* ── Theme tokens (RGB triplets) ─────────────────────────────────────────
+   Set per event (data-event) and per mode (data-theme).
+   canvas: page background     surface: cards      surface2: subtle fills
+   line: borders               ink: main text      muted: secondary text
+   accent: brand text/headings fill: brand fills (bars, buttons)
+   track: progress track       warn/danger: last minute / overtime        */
+
+:root,
+[data-event="hackx"][data-theme="light"] {
+  --canvas: 243 246 251;
+  --surface: 255 255 255;
+  --surface2: 232 239 249;
+  --line: 213 223 238;
+  --ink: 1 8 20;
+  --muted: 75 90 115;
+  --accent: 10 56 120;
+  --fill: 26 111 212;
+  --fill-ink: 255 255 255;
+  --track: 220 230 244;
+  --arc-hi: 91 184 255;
+  --warn: 180 83 9;
+  --danger: 220 38 38;
+}
+
+[data-event="hackx"][data-theme="dark"] {
+  --canvas: 1 8 20;
+  --surface: 4 26 58;
+  --surface2: 7 38 82;
+  --line: 20 55 100;
+  --ink: 255 255 255;
+  --muted: 160 184 214;
+  --accent: 91 184 255;
+  --fill: 26 111 212;
+  --fill-ink: 255 255 255;
+  --track: 10 56 120;
+  --arc-hi: 91 184 255;
+  --warn: 251 191 36;
+  --danger: 248 113 113;
+}
+
+[data-event="hackxjr"][data-theme="light"] {
+  --canvas: 241 248 250;
+  --surface: 255 255 255;
+  --surface2: 226 242 246;
+  --line: 205 227 234;
+  --ink: 1 14 19;
+  --muted: 70 96 106;
+  --accent: 10 92 114;
+  --fill: 24 160 192;
+  --fill-ink: 255 255 255;
+  --track: 214 235 240;
+  --arc-hi: 114 229 248;
+  --warn: 180 83 9;
+  --danger: 220 38 38;
+}
+
+[data-event="hackxjr"][data-theme="dark"] {
+  --canvas: 1 14 19;
+  --surface: 5 46 63;
+  --surface2: 7 62 82;
+  --line: 14 80 100;
+  --ink: 255 255 255;
+  --muted: 150 196 208;
+  --accent: 114 229 248;
+  --fill: 24 160 192;
+  --fill-ink: 255 255 255;
+  --track: 10 92 114;
+  --arc-hi: 114 229 248;
+  --warn: 251 191 36;
+  --danger: 248 113 113;
+}
+
+/* Depth + glass tokens for the ring timer (per mode) */
+:root,
+[data-theme="light"] {
+  --ring-hi: 255 255 255;
+  --ring-lo: var(--surface2);
+  --shadow: 16 38 74;
+  --shadow-a: 0.16;
+  --rim-a: 0.9;
+  --glass-a: 0.72;
+}
+
+[data-theme="dark"] {
+  --ring-hi: var(--surface2);
+  --ring-lo: var(--canvas);
+  --shadow: 0 0 0;
+  --shadow-a: 0.55;
+  --rim-a: 0.12;
+  --glass-a: 0.55;
+}
+
+/* Lets the ring's progress (--p) animate smoothly between ticks */
+@property --p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
 }
 
 * {
@@ -16,35 +111,14 @@ html, body {
   padding: 0;
 }
 
-/* Pulsing animation for overtime */
-@keyframes pulse-red {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+body {
+  background: rgb(var(--canvas));
+  color: rgb(var(--ink));
 }
 
-@keyframes pulse-scale {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-}
-
-.pulse-red {
-  animation: pulse-red 1s ease-in-out infinite, pulse-scale 1s ease-in-out infinite;
-}
-
-/* Slide in animation */
-@keyframes slide-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.slide-in-up {
-  animation: slide-in-up 0.3s ease-out forwards;
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* Drag handle cursor */
@@ -53,20 +127,4 @@ html, body {
 }
 .drag-handle:active {
   cursor: grabbing;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
 }

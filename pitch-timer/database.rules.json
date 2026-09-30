@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "events": {
+      "$event": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child($event).child(auth.uid).val() === true"
+      }
+    },
+    "admins": {
+      "$event": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid"
+        }
+      }
+    }
+  }
+}
