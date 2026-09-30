@@ -1,105 +1,63 @@
-# IdeaX Pitch Timer
+# hackX Pitch Timer
 
-Real-time pitch competition timer and queue system built with **Next.js**, **Firebase Realtime Database**, and **Tailwind CSS**.
+Live pitch timer and team queue for the hackX semi finals, built with **Next.js**, **Firebase Realtime Database** and **Tailwind CSS**.
 
-## Pages
+One deployment runs both events, each with its own queue, timer, branding and MC account:
 
-| Route | Purpose |
-|-------|---------|
-| `/control` | MC Control Panel — manage teams, control timer |
-| `/pitch` | Pitching Room Display — large countdown for projector |
-| `/waiting` | Waiting Room Display — queue + mirrored timer for waiting area |
+| Event | Semi finals | Control | Pitching room | Waiting room |
+|-------|-------------|---------|---------------|--------------|
+| hackX 11.0 | ideaX | `/hackx/control` | `/hackx/pitch` | `/hackx/waiting` |
+| hackX Jr. | innoX | `/hackxjr/control` | `/hackxjr/pitch` | `/hackxjr/waiting` |
+
+`/` links to all of them. Events are defined in [`lib/events.ts`](lib/events.ts).
 
 ---
 
-## Setup
-
-### 1. Clone & Install
+## Run locally
 
 ```bash
-cd pitch-timer
 npm install
-```
-
-### 2. Create a Firebase Project
-
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Create a new project (or use existing)
-3. Go to **Build → Realtime Database** → Create Database
-   - Start in **test mode** for MVP (or set rules to allow read/write)
-4. Go to **Project Settings → General → Your apps**
-5. Click **Add app → Web** → Register app
-6. Copy the config object shown
-
-### 3. Configure Environment Variables
-
-```bash
-cp .env.local.example .env.local
-```
-
-Open `.env.local` and fill in your Firebase config values:
-
-```
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://YOUR_PROJECT-default-rtdb.firebaseio.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=...
-```
-
-> ⚠️ **NEXT_PUBLIC_FIREBASE_DATABASE_URL** is required — it's the Realtime Database URL,  
-> not the Firestore URL. Format: `https://YOUR_PROJECT-default-rtdb.firebaseio.com`
-
-### 4. Firebase Realtime Database Security Rules (MVP)
-
-In Firebase Console → Realtime Database → Rules, use:
-
-```json
-{
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}
-```
-
-> For production, restrict `.write` to authenticated users only.
-
-### 5. Run Locally
-
-```bash
 npm run dev
 ```
 
-Open:
-- [http://localhost:3000/control](http://localhost:3000/control) — MC Panel
-- [http://localhost:3000/pitch](http://localhost:3000/pitch) — Pitching Room
-- [http://localhost:3000/waiting](http://localhost:3000/waiting) — Waiting Room
+Without Firebase config the app runs in **local demo mode**: sessions are stored in this browser only (synced between its tabs) and the control panel needs no login. Good for trying the UI; use Firebase for the real event.
 
----
+## Firebase setup (for the event)
+
+1. [Firebase Console](https://console.firebase.google.com) → create a project.
+2. **Build → Realtime Database** → Create database.
+3. **Build → Authentication** → Get started → enable **Email/Password**.
+4. **Authentication → Users → Add user**, once per event, e.g. `ideax-mc@…` and `innox-mc@…`. Copy each user's **UID**.
+5. **Realtime Database → Data**: add the MC accounts under `admins`:
+   ```
+   admins
+     hackx
+       <UID of the ideaX MC>: true
+     hackxjr
+       <UID of the innoX MC>: true
+   ```
+   Several UIDs per event are fine.
+6. **Realtime Database → Rules**: paste [`database.rules.json`](database.rules.json) and publish. Everyone can read (the screens need no login); only an event's MC accounts can change that event.
+7. **Project settings → Your apps → Web app**: copy the config into `.env.local` (see `.env.local.example`), and into Vercel's environment variables when deploying.
+
+## How it works
+
+- Each event's state is one record at `events/<eventId>/session` (queue, current team, phase, status, durations, screen theme).
+- Starting the timer stores `endsAt` (the moment it hits zero, in Firebase server time). Every screen counts down locally from that, so the clock keeps running even if the control tab is backgrounded, closed or open twice, and all screens agree.
+- The pitch and waiting screens are read-only and update live. Refreshing a screen resyncs instantly.
+- **Light / dark** for the screens is switched from the control panel (Screens → Light/Dark).
+
+## Pitching room screen
+
+- Beeps at 1 minute left and at time-up. **Click the screen once** after opening it so the browser allows sound (a hint appears in the corner until you do).
+- The fullscreen button and cursor hide after a few seconds without mouse movement.
+
+## Font
+
+The UI uses **Inter** (loaded via `next/font`).
 
 ## Deploy to Vercel
 
-1. Push this project to a GitHub repo
-2. Go to [vercel.com](https://vercel.com) → Import project
-3. Add all `NEXT_PUBLIC_FIREBASE_*` variables in **Vercel → Settings → Environment Variables**
-4. Deploy — Vercel auto-detects Next.js
-
----
-
-## How It Works
-
-- **All state** lives in Firebase Realtime Database at `/session`
-- **`/control`** drives the countdown — it runs a 1-second `setInterval` that decrements `timeRemaining` in Firebase when the timer is running
-- **`/pitch`** and **`/waiting`** are read-only — they subscribe to Firebase via `onValue()` and reflect any change instantly, with no page refresh needed
-- If a display page is refreshed or loses connection briefly, it resyncs automatically from Firebase — no state is lost
-
-## Audio (Pitch Page)
-
-The `/pitch` page plays audio beeps using the Web Audio API:
-- **1-minute warning**: 3 short beeps at 880 Hz
-- **Time up**: Two-tone alert (440 Hz + 880 Hz)
-
-**Important**: Click anywhere on `/pitch` before the event starts to initialize the AudioContext (browser security requires a user gesture first).
+1. Import the repo in Vercel and set **Root Directory** to `pitch-timer`.
+2. Add all `NEXT_PUBLIC_FIREBASE_*` environment variables.
+3. Deploy.

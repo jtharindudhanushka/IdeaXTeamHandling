@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "IdeaX Pitch Timer",
-  description: "Real-time pitch competition timer and queue system for IdeaX",
+  title: "hackX Pitch Timer",
+  description: "Live pitch timer and team queue for hackX semi finals",
 };
 
 export default function RootLayout({
@@ -20,9 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased bg-gray-950 text-white">
-        {children}
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }
