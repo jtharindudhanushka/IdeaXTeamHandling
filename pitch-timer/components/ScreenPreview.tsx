@@ -25,7 +25,7 @@ export function ScreenPreview({ href, label }: { href: string; label: string }) 
       <div ref={boxRef} className="relative aspect-video overflow-hidden rounded-xl border border-line bg-canvas">
         {scale > 0 && (
           <iframe
-            src={`${href}?preview=1`}
+            src={`${href}${href.includes("?") ? "&" : "?"}preview=1`}
             title={`${label} preview`}
             tabIndex={-1}
             className="pointer-events-none absolute left-0 top-0 origin-top-left border-0"

@@ -3,40 +3,31 @@
 import { useEffect, useState } from "react";
 import { PARTNERS, type EventConfig, type Theme } from "@/lib/events";
 import { Logo } from "./brand";
+import { AtlantisStage } from "./AtlantisStage";
 
-// hackX + Ministry + NSF, side by side — top of the waiting room.
-export function MainLogos({ event, theme }: { event: EventConfig; theme: Theme }) {
+// Still: hackX logo over the wave stage, Ministry + NSF beneath.
+export function BrandStill({ event }: { event: EventConfig; theme?: Theme }) {
   return (
-    <div className="flex items-center justify-center gap-[2.5vw]">
-      <Logo src={event.eventLogo[theme]} alt={event.name} className="h-[11vh]" />
-      <div className="h-[8vh] w-px bg-line" />
-      {event.sponsors.map((s) => (
-        <Logo key={s.name} src={s.logo[theme]} alt={s.name} className="h-[9vh]" />
-      ))}
+    <div className="scene-in relative h-full">
+      <AtlantisStage eventId={event.id}>
+        <div className="flex h-full flex-col items-center justify-center gap-[10cqh] pb-[12cqh]">
+          <Logo src={event.eventLogo.dark} alt={event.name} className="h-[30cqh]" />
+          <div className="flex items-center gap-[5cqw]">
+            {event.sponsors.map((s) => (
+              <Logo key={s.name} src={s.logo.dark} alt={s.name} className="h-[11cqh]" />
+            ))}
+          </div>
+        </div>
+      </AtlantisStage>
     </div>
   );
 }
 
-// Still: big hackX logo with the Ministry and NSF logos beneath.
-export function BrandStill({ event, theme }: { event: EventConfig; theme: Theme }) {
-  return (
-    <div className="scene-in relative flex h-full flex-col items-center justify-center gap-[7vh]">
-      <Glow />
-      <Logo src={event.eventLogo[theme]} alt={event.name} className="relative h-[34vh]" />
-      <div className="relative h-px w-[30vw] bg-line" />
-      <div className="relative flex items-center gap-[5vw]">
-        {event.sponsors.map((s) => (
-          <Logo key={s.name} src={s.logo[theme]} alt={s.name} className="h-[15vh]" />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Still: partner logos one at a time, fading in and out on a white card.
+// Still: partner logos one at a time, fading in and out on a white card,
+// in front of the wave stage.
 const SLIDE_MS = 4500;
 
-export function PartnerSlideshow() {
+export function PartnerSlideshow({ event }: { event: EventConfig }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -45,21 +36,24 @@ export function PartnerSlideshow() {
   }, []);
 
   return (
-    <div className="scene-in relative flex h-full flex-col items-center justify-center gap-[5vh]">
-      <Glow />
-      <p className="relative text-[1.6vw] font-extrabold uppercase tracking-[0.35em] text-accent">Our partners</p>
-      <div className="glass-white relative h-[56vh] w-[62vw] rounded-[4vh]">
-        {PARTNERS.map((p, i) => (
-          <div
-            key={p.src}
-            className="absolute inset-0 flex items-center justify-center p-[8vh] transition-opacity duration-1000 ease-in-out"
-            style={{ opacity: i === index ? 1 : 0 }}
-            aria-hidden={i !== index}
-          >
-            <Logo src={p.src} alt={p.name} className="max-h-[30vh] max-w-[46vw]" />
+    <div className="scene-in relative h-full">
+      <AtlantisStage eventId={event.id}>
+        <div className="flex h-full flex-col items-center justify-center gap-[5cqh] pb-[10cqh]">
+          <p className="text-[1.8cqw] font-bold uppercase tracking-[0.4em] text-white/80">Our partners</p>
+          <div className="relative h-[46cqh] w-[54cqw] rounded-[4cqh] bg-white shadow-[0_4cqh_10cqh_rgb(0_0_0/0.55)]">
+            {PARTNERS.map((p, i) => (
+              <div
+                key={p.src}
+                className="absolute inset-0 flex items-center justify-center p-[6cqh] transition-opacity duration-1000 ease-in-out"
+                style={{ opacity: i === index ? 1 : 0 }}
+                aria-hidden={i !== index}
+              >
+                <Logo src={p.src} alt={p.name} className="max-h-[26cqh] max-w-[40cqw]" />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </AtlantisStage>
     </div>
   );
 }
@@ -86,46 +80,20 @@ export function PartnerMarquee({ className = "" }: { className?: string }) {
   );
 }
 
-// Pill card with a light that travels around its edge (from the reference).
-export function GlowCard({
-  label,
-  tag,
-  name,
-  live = false,
-  size = "lg",
-}: {
-  label: string;
-  tag?: React.ReactNode;
-  name: string;
-  live?: boolean;
-  size?: "lg" | "md";
-}) {
-  const big = size === "lg";
+// Bottom strip for the waiting room: partner marquee with the hackX logo
+// pinned on the left — logos scroll behind it under a white fade.
+export function PartnerStrip({ event, className = "" }: { event: EventConfig; className?: string }) {
   return (
-    <div className={`glow-card ${live ? "glow-card-live" : ""} w-full rounded-full`} style={{ padding: big ? "1.1vh" : "0.9vh" }}>
+    <div className={`relative overflow-hidden bg-white ${className}`}>
+      <div className="absolute inset-0">
+        <PartnerMarquee className="h-full" />
+      </div>
       <div
-        className="glow-card-inner relative flex items-center gap-[2vw] rounded-full"
-        style={{ padding: big ? "4.2vh 4vw" : "3.2vh 4vw" }}
+        className="absolute inset-y-0 left-0 z-10 flex w-[30vw] items-center pl-[3.5vw]"
+        style={{ background: "linear-gradient(90deg, #fff 0%, #fff 62%, rgb(255 255 255 / 0) 100%)" }}
       >
-        <div className="min-w-0 flex-1">
-          <p className={`font-extrabold uppercase tracking-[0.28em] text-accent ${big ? "text-[1.5vw]" : "text-[1.3vw]"}`}>{label}</p>
-          <p
-            className={`mt-[0.8vh] truncate font-black leading-[1.05] tracking-[-0.02em] text-ink ${big ? "text-[5.4vw]" : "text-[4.2vw]"}`}
-          >
-            {name}
-          </p>
-        </div>
-        {tag && <div className="shrink-0">{tag}</div>}
+        <Logo src={event.eventLogo.light} alt={event.name} className="h-[9vh]" />
       </div>
     </div>
-  );
-}
-
-function Glow() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0"
-      style={{ background: "radial-gradient(ellipse 60% 55% at 50% 45%, rgb(var(--fill) / 0.14), transparent 70%)" }}
-    />
   );
 }

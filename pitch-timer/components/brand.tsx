@@ -87,10 +87,12 @@ export function ScreenCorner({ hint }: { hint?: string | null }) {
     };
     const onFs = () => setIsFullscreen(!!document.fullscreenElement);
     show();
-    window.addEventListener("mousemove", show);
+    // any pointer or key activity wakes it; it fades out again after 2.5 s at rest
+    const events = ["pointermove", "pointerdown", "keydown"] as const;
+    events.forEach((e) => window.addEventListener(e, show, { passive: true }));
     document.addEventListener("fullscreenchange", onFs);
     return () => {
-      window.removeEventListener("mousemove", show);
+      events.forEach((e) => window.removeEventListener(e, show));
       document.removeEventListener("fullscreenchange", onFs);
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };
@@ -117,7 +119,7 @@ export function ScreenCorner({ hint }: { hint?: string | null }) {
         <button
           onClick={toggle}
           title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-          className="p-3 rounded-full bg-surface border border-line text-muted hover:text-ink shadow-sm"
+          className="p-3 rounded-full bg-black/60 border border-white/20 text-white/80 hover:text-white backdrop-blur-md shadow-lg"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             {isFullscreen ? (
