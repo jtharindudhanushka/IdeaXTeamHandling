@@ -46,7 +46,7 @@ export default function PitchScreen({ eventId }: { eventId: EventId }) {
   if (session.pitchScene !== "timer") {
     return (
       <EventShell key={session.pitchScene} event={event} theme={theme} className="h-dvh overflow-hidden select-none">
-        {session.pitchScene === "brand" ? <BrandStill event={event} theme={theme} /> : <PartnerSlideshow />}
+        {session.pitchScene === "brand" ? <BrandStill event={event} /> : <PartnerSlideshow event={event} />}
         <ReconnectingNotice show={connectionLost} />
         {!isPreview && <ScreenCorner />}
       </EventShell>
