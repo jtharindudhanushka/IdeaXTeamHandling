@@ -5,14 +5,22 @@ import { Session } from "./types";
 
 // Offset between this device's clock and Firebase server time, so every
 // screen computes the same remaining time even if device clocks disagree.
+// The last known offset is remembered so a reload while offline stays in sync.
+const OFFSET_KEY = "pitch-timer-server-offset";
 let serverOffsetMs = 0;
 let offsetSubscribed = false;
 
 function ensureOffsetSubscription() {
   if (offsetSubscribed || typeof window === "undefined" || !isFirebaseConfigured) return;
   offsetSubscribed = true;
+  try {
+    serverOffsetMs = Number(window.localStorage.getItem(OFFSET_KEY)) || 0;
+  } catch {}
   onValue(ref(getDb(), ".info/serverTimeOffset"), (snap) => {
     serverOffsetMs = snap.val() ?? 0;
+    try {
+      window.localStorage.setItem(OFFSET_KEY, String(serverOffsetMs));
+    } catch {}
   });
 }
 

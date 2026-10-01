@@ -18,13 +18,13 @@ const THICKNESS = 0.13; // ring thickness as a fraction of the diameter
 export function RingTimer({
   progress,
   tone,
-  pulse = false,
+  alert,
   size,
   children,
 }: {
   progress: number; // 0..1 of the ring filled
   tone: TimerTone;
-  pulse?: boolean;
+  alert?: "flash" | "pulse"; // flash = last 30 s, pulse = overtime
   size: string; // CSS length for the diameter
   children: React.ReactNode;
 }) {
@@ -42,7 +42,7 @@ export function RingTimer({
 
   return (
     <div
-      className="relative shrink-0 rounded-full"
+      className={`relative shrink-0 rounded-full ${alert === "pulse" ? "ring-pulse" : ""}`}
       style={{ ["--d" as string]: size, ["--p" as string]: p, width: "var(--d)", height: "var(--d)", transition: "--p 1s linear" } as React.CSSProperties}
     >
       {/* Base ring — raised, softly lit from the top-left */}
@@ -70,13 +70,13 @@ export function RingTimer({
 
       {/* Glow — the arc blurred, bleeding softly along the ring */}
       <div
-        className={`absolute inset-0 rounded-full ${pulse ? "animate-pulse" : ""}`}
+        className={`absolute inset-0 rounded-full ${alert === "flash" ? "ring-flash" : ""}`}
         style={{ background: arc, WebkitMaskImage: donut, maskImage: donut, filter: "blur(calc(var(--d) * 0.045))", opacity: 0.9 }}
       />
 
       {/* Crisp arc with a glass sheen on top */}
       <div
-        className="absolute inset-0 rounded-full"
+        className={`absolute inset-0 rounded-full ${alert === "flash" ? "ring-flash" : ""}`}
         style={{
           // sheen from above + tube shading (lighter toward the inner edge) over the arc colour
           background: `linear-gradient(160deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 45%), radial-gradient(farthest-side, rgb(255 255 255 / 0.28) calc(100% - ${t}), rgb(255 255 255 / 0) calc(100% - ${t} * 0.35), rgb(0 0 0 / 0.08) 100%), ${arc}`,

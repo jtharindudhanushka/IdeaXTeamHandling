@@ -83,6 +83,10 @@
   --shadow-a: 0.16;
   --rim-a: 0.9;
   --glass-a: 0.72;
+  --card-ring: rgb(var(--fill) / 0.22);
+  --card-top: 255 255 255;
+  --card-bottom: var(--surface2);
+  --card-edge: rgb(255 255 255 / 0.95);
 }
 
 [data-theme="dark"] {
@@ -92,6 +96,10 @@
   --shadow-a: 0.55;
   --rim-a: 0.12;
   --glass-a: 0.55;
+  --card-ring: rgb(0 0 0 / 0.55);
+  --card-top: var(--surface2);
+  --card-bottom: var(--surface);
+  --card-edge: rgb(255 255 255 / 0.12);
 }
 
 /* Lets the ring's progress (--p) animate smoothly between ticks */
@@ -127,4 +135,188 @@ body {
 }
 .drag-handle:active {
   cursor: grabbing;
+}
+
+/* ── Waiting-room spotlight ("Get ready") ─────────────────────────────── */
+.spotlight-enter {
+  animation: spotlight-fade 0.6s ease-out both;
+}
+
+.spotlight-marquee {
+  animation: spotlight-marquee 40s linear infinite;
+}
+
+/* Giant background letters, lit in the event colour */
+.spotlight-bigtext {
+  color: transparent;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--fill) / 0.08) 10%,
+    rgb(var(--fill) / 0.9) 45%,
+    rgb(var(--arc-hi) / 0.55) 55%,
+    rgb(var(--fill) / 0.08) 90%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.spotlight-glow {
+  animation: spotlight-drift 14s ease-in-out infinite alternate;
+}
+.spotlight-glow-alt {
+  animation: spotlight-drift 18s ease-in-out infinite alternate-reverse;
+}
+
+.spotlight-rise {
+  animation: spotlight-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes spotlight-fade {
+  from { opacity: 0; transform: scale(1.03); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes spotlight-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes spotlight-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(8vw, 6vh) scale(1.15); }
+}
+@keyframes spotlight-rise {
+  from { opacity: 0; transform: translateY(3vh); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-marquee, .spotlight-glow, .spotlight-glow-alt { animation: none; }
+}
+
+/* ── Scenes ───────────────────────────────────────────────────────────── */
+.scene-in {
+  animation: scene-in 0.7s ease-out both;
+}
+@keyframes scene-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.partner-marquee {
+  animation: spotlight-marquee 70s linear infinite;
+}
+
+.glass-white {
+  background: linear-gradient(180deg, #fff, #f6f8fc);
+  border: 1px solid #fff;
+  box-shadow: 0 4vh 9vh rgb(var(--shadow) / calc(var(--shadow-a) * 1.3)), inset 0 1px 0 #fff;
+}
+
+/* ── Glow card: pill with a light travelling round its edge ─────────────── */
+@property --angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+.glow-card {
+  position: relative;
+  isolation: isolate;
+  background: var(--card-ring);
+  box-shadow: 0 3vh 7vh rgb(var(--shadow) / calc(var(--shadow-a) * 1.4));
+  animation: glow-spin 9s linear infinite;
+}
+.glow-card-live {
+  animation-duration: 5s;
+}
+
+/* the travelling light — a crisp copy plus a blurred halo */
+.glow-card::before,
+.glow-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: inherit;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0deg,
+    rgb(var(--fill)) 35deg,
+    rgb(var(--arc-hi)) 70deg,
+    transparent 115deg,
+    transparent 180deg,
+    rgb(var(--fill) / 0.7) 215deg,
+    rgb(var(--arc-hi) / 0.8) 245deg,
+    transparent 290deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.glow-card::after {
+  inset: -1.2vh;
+  padding: calc(1.2vh + 1.1vh);
+  filter: blur(1.4vh);
+  opacity: 0.55;
+}
+.glow-card-live::after {
+  opacity: 0.85;
+}
+
+.glow-card-inner {
+  background: linear-gradient(180deg, rgb(var(--card-top)), rgb(var(--card-bottom)));
+  border: 1px solid var(--card-edge);
+  box-shadow: inset 0 -0.8vh 2vh rgb(var(--shadow) / calc(var(--shadow-a) * 0.5));
+}
+
+@keyframes glow-spin {
+  to { --angle: 360deg; }
+}
+
+.live-dot {
+  animation: live-dot 1.6s ease-in-out infinite;
+}
+@keyframes live-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--fill) / 0.6); }
+  50% { box-shadow: 0 0 0 0.8vh rgb(var(--fill) / 0); }
+}
+
+/* ── Pitching room alerts ─────────────────────────────────────────────── */
+/* last 30 s: amber edge flash · overtime: red edge pulse */
+.edge-flash,
+.edge-pulse {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.edge-flash {
+  box-shadow: inset 0 0 24vh 4vh rgb(var(--warn) / 0.8);
+  animation: edge-flash 1s ease-in-out infinite;
+}
+.edge-pulse {
+  box-shadow: inset 0 0 28vh 5vh rgb(var(--danger) / 0.8);
+  animation: edge-flash 1.6s ease-in-out infinite;
+}
+@keyframes edge-flash {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
+
+.ring-flash {
+  animation: ring-flash 1s ease-in-out infinite;
+}
+.ring-pulse {
+  animation: ring-pulse 1.6s ease-in-out infinite;
+}
+@keyframes ring-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.035); filter: brightness(1.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-card, .partner-marquee { animation: none; }
 }

@@ -23,6 +23,7 @@ function normalize(data: Record<string, unknown> | null): Session {
     completed: toArray(data.completed),
     currentTeam: (data.currentTeam as Session["currentTeam"]) ?? null,
     endsAt: (data.endsAt as number | null) ?? null,
+    spotlight: (data.spotlight as Session["spotlight"]) ?? null,
   } as Session;
 }
 
@@ -69,6 +70,56 @@ function hookStorageEvents() {
   });
 }
 
+// ── Offline cache (Firebase mode) ────────────────────────────────────────
+// The last session each browser saw is kept in localStorage, so a screen
+// reloaded while offline still shows the right team and a running timer.
+
+function cacheKey(eventId: string) {
+  return `pitch-timer-cache:${eventId}`;
+}
+
+function readCache(eventId: string): Record<string, unknown> | null {
+  try {
+    const raw = window.localStorage.getItem(cacheKey(eventId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(eventId: string, data: unknown) {
+  try {
+    window.localStorage.setItem(cacheKey(eventId), JSON.stringify(data));
+  } catch {
+    // storage unavailable — nothing to cache
+  }
+}
+
+// ── Pending writes ───────────────────────────────────────────────────────
+// Firebase applies writes locally at once and queues them while offline;
+// each write's promise settles when the server confirms it. Counting the
+// unsettled ones tells the MC whether the screens have their change yet.
+
+let pendingWrites = 0;
+const pendingListeners = new Set<(count: number) => void>();
+
+function trackWrite(write: Promise<void>): Promise<void> {
+  pendingWrites++;
+  pendingListeners.forEach((cb) => cb(pendingWrites));
+  return write.finally(() => {
+    pendingWrites--;
+    pendingListeners.forEach((cb) => cb(pendingWrites));
+  });
+}
+
+export function subscribeToPendingWrites(callback: (count: number) => void): () => void {
+  pendingListeners.add(callback);
+  callback(pendingWrites);
+  return () => {
+    pendingListeners.delete(callback);
+  };
+}
+
 // ── Public API ───────────────────────────────────────────────────────────
 
 export function subscribeToSession(
@@ -85,8 +136,14 @@ export function subscribeToSession(
     };
   }
 
+  // Show the cached session straight away; the live one replaces it on connect.
+  const cached = readCache(eventId);
+  if (cached) callback(normalize(cached));
+
   return onValue(ref(getDb(), sessionPath(eventId)), (snapshot) => {
-    callback(normalize(snapshot.exists() ? snapshot.val() : null));
+    const data = snapshot.exists() ? snapshot.val() : null;
+    writeCache(eventId, data);
+    callback(normalize(data));
   });
 }
 
@@ -103,7 +160,7 @@ export async function updateSession(
     writeLocal(eventId, next);
     return;
   }
-  await update(ref(getDb(), sessionPath(eventId)), updates);
+  await trackWrite(update(ref(getDb(), sessionPath(eventId)), updates));
 }
 
 export async function setSession(eventId: string, session: Session): Promise<void> {
@@ -111,7 +168,7 @@ export async function setSession(eventId: string, session: Session): Promise<voi
     writeLocal(eventId, JSON.parse(JSON.stringify(session)));
     return;
   }
-  await set(ref(getDb(), sessionPath(eventId)), session);
+  await trackWrite(set(ref(getDb(), sessionPath(eventId)), session));
 }
 
 // Reports whether this client is connected to the database.

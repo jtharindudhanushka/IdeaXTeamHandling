@@ -8,6 +8,11 @@ export interface Team {
 export type SessionStatus = "idle" | "running" | "paused" | "done";
 export type Phase = "pitch" | "qa";
 
+// What each display shows — switched explicitly by the MC (like OBS scenes),
+// so timer controls never change a screen by accident.
+export type PitchScene = "timer" | "brand" | "partners";
+export type WaitingScene = "teams" | "call" | "brand" | "partners";
+
 export interface Session {
   status: SessionStatus;
   phase: Phase;
@@ -19,6 +24,9 @@ export interface Session {
   queue: Team[];
   completed: Team[];
   theme: Theme;            // light/dark for the pitch + waiting screens, set by the MC
+  spotlight: Team | null;  // team shown by the waiting screen's "call" scene
+  pitchScene: PitchScene;
+  waitingScene: WaitingScene;
 }
 
 export const DEFAULT_SESSION: Session = {
@@ -32,4 +40,7 @@ export const DEFAULT_SESSION: Session = {
   queue: [],
   completed: [],
   theme: "light",
+  spotlight: null,
+  pitchScene: "timer",
+  waitingScene: "teams",
 };
