@@ -56,6 +56,19 @@ export const EVENTS: Record<EventId, EventConfig> = {
   },
 };
 
+// Partner logos (all designed for white backgrounds), in display order.
+export const PARTNERS: { name: string; src: string }[] = [
+  { name: "Ministry of Science & Technology", src: "/partners/01-ministry.png" },
+  { name: "National Science Foundation", src: "/partners/02-nsf.png" },
+  { name: "Evonsys", src: "/partners/03-evonsys.png" },
+  { name: "Lion:Bit", src: "/partners/04-lionbit.png" },
+  { name: "nVentures", src: "/partners/05-nventures.png" },
+  { name: "Generation Alpha", src: "/partners/06-generation-alpha.png" },
+  { name: "SLASSCOM", src: "/partners/07-slasscom.png" },
+  { name: "TiE Colombo", src: "/partners/08-tie-colombo.png" },
+  { name: "Virtusa", src: "/partners/09-virtusa.png" },
+];
+
 export const EVENT_IDS = Object.keys(EVENTS) as EventId[];
 
 export function getEvent(id: string): EventConfig | null {

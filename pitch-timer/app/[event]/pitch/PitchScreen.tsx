@@ -3,10 +3,12 @@
 import { EVENTS, EventId } from "@/lib/events";
 import { useRemainingSeconds } from "@/lib/clock";
 import { formatTime, timerTone } from "@/lib/format";
-import { useConnectionLost, useEventSession } from "@/components/hooks";
+import { useConnectionLost, useEventSession, useWakeLock } from "@/components/hooks";
+import { useIsPreview } from "@/components/ScreenPreview";
 import { useTimerAlerts } from "@/components/useTimerAlerts";
 import { EventShell, ReconnectingNotice, ScreenCorner, toneText } from "@/components/brand";
 import { RingTimer } from "@/components/RingTimer";
+import { BrandStill, PartnerSlideshow } from "@/components/scenes";
 
 // Ring diameter — leaves room for the team name above it.
 const RING = "min(76vh, 86vw)";
@@ -15,6 +17,8 @@ export default function PitchScreen({ eventId }: { eventId: EventId }) {
   const event = EVENTS[eventId];
   const { session, loaded } = useEventSession(eventId);
   const connectionLost = useConnectionLost();
+  const isPreview = useIsPreview();
+  useWakeLock(!isPreview);
   const remaining = useRemainingSeconds(session);
   const soundReady = useTimerAlerts(session.status, remaining);
   const theme = session.theme;
@@ -35,11 +39,26 @@ export default function PitchScreen({ eventId }: { eventId: EventId }) {
     : session.status === "idle" ? { label: "Ready", cls: "text-muted" }
     : null;
 
+  // Last 30 s of a running clock flashes; overtime pulses
+  const alert = over ? "pulse" : session.status === "running" && remaining <= 30 ? "flash" : undefined;
+
+  // Still scenes, chosen by the MC (the timer keeps running underneath)
+  if (session.pitchScene !== "timer") {
+    return (
+      <EventShell key={session.pitchScene} event={event} theme={theme} className="h-dvh overflow-hidden select-none">
+        {session.pitchScene === "brand" ? <BrandStill event={event} theme={theme} /> : <PartnerSlideshow />}
+        <ReconnectingNotice show={connectionLost} />
+        {!isPreview && <ScreenCorner />}
+      </EventShell>
+    );
+  }
+
   return (
     <EventShell
       event={event}
       theme={theme}
-      className="h-dvh flex flex-col items-center justify-center gap-[3.5vh] overflow-hidden select-none px-[4vw]"
+      key="timer"
+      className="scene-in h-dvh flex flex-col items-center justify-center gap-[3.5vh] overflow-hidden select-none px-[4vw]"
     >
       {/* soft light from above for depth */}
       <div
@@ -53,7 +72,7 @@ export default function PitchScreen({ eventId }: { eventId: EventId }) {
             {team.name}
           </h1>
 
-          <RingTimer progress={progress} tone={tone} pulse={over} size={RING}>
+          <RingTimer progress={progress} tone={tone} alert={team ? alert : undefined} size={RING}>
             <div
               className={`tabular font-black leading-none tracking-[-0.04em] ${toneText[tone]}`}
               style={{ fontSize: `calc(var(--d) * ${over ? 0.17 : 0.205})` }}
@@ -100,8 +119,10 @@ export default function PitchScreen({ eventId }: { eventId: EventId }) {
         </>
       )}
 
+      {team && alert === "flash" && <div className="edge-flash" />}
+      {team && alert === "pulse" && <div className="edge-pulse" />}
       <ReconnectingNotice show={connectionLost} />
-      <ScreenCorner hint={soundReady ? null : "Click anywhere to enable sound"} />
+      {!isPreview && <ScreenCorner hint={soundReady ? null : "Click anywhere to enable sound"} />}
     </EventShell>
   );
 }
