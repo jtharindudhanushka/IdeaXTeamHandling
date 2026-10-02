@@ -3,7 +3,7 @@
 import type { EventConfig } from "@/lib/events";
 import type { Session } from "@/lib/types";
 import { PartnerStrip } from "@/components/scenes";
-import { AtlantisStage } from "@/components/AtlantisStage";
+import { VideoStage } from "@/components/VideoStage";
 
 // Waiting-room "Teams" scene: one big card on a soft blue backdrop, divided
 // into an underwater wave panel (Now pitching) and a clean white side (Up next
@@ -39,9 +39,9 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
       {/* The card */}
       <div className="relative flex h-full flex-col overflow-hidden rounded-[3.4vh] bg-surface shadow-[0_3vh_8vh_rgb(var(--shadow)/0.22)]">
         <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] gap-[2.4vh] p-[2.4vh]">
-          {/* Now pitching — underwater wave panel */}
+          {/* Now pitching — looping underwater Poseidon video */}
           <div className="relative min-h-0 overflow-hidden rounded-[2.6vh]">
-            <AtlantisStage eventId={event.id}>
+            <VideoStage src="/stage/poseidon-trident.mp4" poster="/stage/poseidon-trident-poster.jpg">
               {team && (
               <div className="flex h-full flex-col justify-end p-[3.2vw]">
                 <p className="inline-flex w-fit items-center gap-[0.8vw] rounded-full border border-white/25 bg-white/10 px-[1.4vw] py-[0.9vh] text-[1.2vw] font-bold uppercase tracking-[0.3em] text-white backdrop-blur-md">
@@ -57,7 +57,7 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
                 </p>
               </div>
               )}
-            </AtlantisStage>
+            </VideoStage>
           </div>
 
           {/* Up next + then */}

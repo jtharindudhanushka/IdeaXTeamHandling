@@ -2,7 +2,7 @@
 // without internet. Live data still comes from Firebase (not cached here);
 // the app shows the last known session from localStorage until it reconnects.
 
-const CACHE = "pitch-timer-v1";
+const CACHE = "pitch-timer-v2";
 const NETWORK_TIMEOUT_MS = 4000;
 
 self.addEventListener("install", () => self.skipWaiting());
@@ -18,7 +18,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  if (req.method !== "GET") return;
+  if (req.method !== "GET" || req.headers.has("range")) return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // Firebase, fonts etc. go straight to the network
 
