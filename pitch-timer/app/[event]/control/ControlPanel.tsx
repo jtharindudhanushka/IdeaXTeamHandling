@@ -159,6 +159,14 @@ function ControlPanel({ eventId, user }: { eventId: EventId; user: ControlUser }
     return update({ queue, ...(wasCalled ? { spotlight: null, waitingScene: "teams" as const } : {}) });
   };
 
+  // Put a finished team back at the end of the queue (e.g. to pitch again)
+  const handleRequeue = (index: number) => {
+    const completed = [...session.completed];
+    const [team] = completed.splice(index, 1);
+    if (!team) return Promise.resolve();
+    return update({ completed, queue: [...session.queue, team] });
+  };
+
   const handleMove = (index: number, delta: -1 | 1) => {
     const target = index + delta;
     if (target < 0 || target >= session.queue.length) return Promise.resolve();
@@ -552,9 +560,16 @@ function ControlPanel({ eventId, user }: { eventId: EventId; user: ControlUser }
               <summary className={`${label} cursor-pointer select-none`}>Completed · {session.completed.length}</summary>
               <ol className="mt-2 space-y-1 max-h-48 overflow-y-auto">
                 {session.completed.map((t, i) => (
-                  <li key={`${t.id}-${i}`} className="flex gap-3 px-2 py-1 font-semibold text-muted">
+                  <li key={`${t.id}-${i}`} className="flex items-center gap-3 px-2 py-1 font-semibold text-muted">
                     <span className="tabular w-6 text-right">{i + 1}.</span>
-                    <span className="truncate">{t.name}</span>
+                    <span className="flex-1 min-w-0 truncate">{t.name}</span>
+                    <button
+                      onClick={() => run(() => handleRequeue(i))}
+                      className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold text-accent hover:bg-surface2"
+                      title="Add this team back to the end of the queue"
+                    >
+                      ↩ Back to queue
+                    </button>
                   </li>
                 ))}
               </ol>
