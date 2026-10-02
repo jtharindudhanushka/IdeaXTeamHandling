@@ -12,6 +12,13 @@ import { AtlantisStage } from "@/components/AtlantisStage";
 
 const SLOTS = 5;
 
+// Shrink long team names so they fit on one line where possible (Inter Black
+// is ~0.6em per character); very long names wrap at the minimum size instead.
+function fitSize(name: string, max: number, min: number, lineWidthVw: number) {
+  const fit = lineWidthVw / Math.max(name.length * 0.6, 1);
+  return `${Math.max(min, Math.min(max, fit))}vw`;
+}
+
 export function SplitTeams({ session, event }: { session: Session; event: EventConfig }) {
   const team = session.currentTeam;
   const next = session.queue[0] ?? null;
@@ -43,8 +50,8 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
                   {session.phase === "qa" ? "Now in Q&A" : "Now pitching"}
                 </p>
                 <p
-                  className="mt-[2vh] font-black leading-[1.0] tracking-[-0.035em] text-white line-clamp-3 break-words text-[5.2vw]"
-                  style={{ textShadow: "0 0.4vh 3vh rgb(0 0 0 / 0.6)" }}
+                  className="mt-[2vh] pb-[0.4vh] font-black leading-[1.05] tracking-[-0.035em] text-white line-clamp-3 break-words"
+                  style={{ fontSize: fitSize(team.name, 5.2, 3.6, 36), textShadow: "0 0.4vh 3vh rgb(0 0 0 / 0.6)" }}
                 >
                   {team.name}
                 </p>
@@ -60,17 +67,21 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
                 <p className="inline-flex w-fit items-center rounded-full bg-fill px-[1.4vw] py-[0.9vh] text-[1.2vw] font-bold uppercase tracking-[0.3em] text-fill-ink">
                   Up next
                 </p>
-                <p key={next.id} className="text-sweep slot-in mt-[2vh] font-black leading-[1.04] tracking-[-0.03em] line-clamp-2 break-words text-[4.6vw]">
+                <p
+                  key={next.id}
+                  className="text-sweep slot-in mt-[2vh] shrink-0 pb-[0.5vh] font-black leading-[1.1] tracking-[-0.03em] line-clamp-2 break-words"
+                  style={{ fontSize: fitSize(next.name, 4.6, 3, 34) }}
+                >
                   {next.name}
                 </p>
               </>
             )}
 
-            <div className="mt-auto">
-              <p className="mb-[1.2vh] text-[1.2vw] font-bold uppercase tracking-[0.3em] text-muted">Then</p>
-              <div className="border-t border-ink/10">
+            <div className="mt-auto flex min-h-0 shrink flex-col pt-[2.4vh]">
+              <p className="mb-[1.2vh] shrink-0 text-[1.2vw] font-bold uppercase tracking-[0.3em] text-muted">Then</p>
+              <div className="flex min-h-0 shrink flex-col border-t border-ink/10">
                 {slots.map((s) => (
-                  <div key={s.team?.id ?? `empty-${s.position}`} className={`flex h-[8.4vh] items-center gap-[1.2vw] border-b border-ink/10 ${s.team ? "slot-in" : ""}`}>
+                  <div key={s.team?.id ?? `empty-${s.position}`} className={`flex min-h-[5.2vh] shrink basis-[8.4vh] items-center gap-[1.2vw] border-b border-ink/10 ${s.team ? "slot-in" : ""}`}>
                     {/* accent bar, like the reference's stat markers */}
                     <span className={`h-[3.6vh] w-[0.45vw] shrink-0 rounded-full ${s.team ? "bg-fill" : "bg-ink/10"}`} />
                     <span className={`w-[2.4vw] shrink-0 text-[1.6vw] font-black tabular ${s.team ? "text-accent" : "text-ink/20"}`}>{s.position}</span>
@@ -81,7 +92,7 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
                 ))}
               </div>
               {more > 0 && (
-                <p className="pt-[1.4vh] pl-[0.2vw] text-[1.5vw] font-bold text-muted">
+                <p className="shrink-0 pt-[1.4vh] pl-[0.2vw] text-[1.5vw] font-bold text-muted">
                   + {more} more team{more === 1 ? "" : "s"} waiting
                 </p>
               )}

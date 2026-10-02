@@ -43,6 +43,7 @@ function ControlPanel({ eventId, user }: { eventId: EventId; user: ControlUser }
   const [qaDurationInput, setQaDurationInput] = useState("3:00");
   const [error, setError] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [scrub, setScrub] = useState<number | null>(null); // time being dragged on the slider
   const initializedRef = useRef(false);
   const dragOverRef = useRef<number | null>(null);
 
@@ -197,6 +198,17 @@ function ControlPanel({ eventId, user }: { eventId: EventId; user: ControlUser }
     } else {
       await update({ queue: session.queue.map((t) => (t.id === id ? { ...t, name } : t)) });
     }
+  };
+
+  // Set a custom time while paused / not started; Start or Resume counts down from it
+  const handleSetTime = (seconds: number) =>
+    update({ timeRemaining: Math.max(0, Math.min(99 * 60 + 59, Math.round(seconds))) });
+
+  const commitScrub = () => {
+    if (scrub === null) return;
+    const value = scrub;
+    setScrub(null);
+    run(() => handleSetTime(value));
   };
 
   const handleSetTheme = (theme: Theme) => update({ theme });
@@ -382,13 +394,47 @@ function ControlPanel({ eventId, user }: { eventId: EventId; user: ControlUser }
               )}
             </div>
 
-            <div className={`tabular font-black text-center text-7xl py-4 tracking-[-0.03em] ${team ? toneText[tone] : "text-muted"}`}>
-              {formatTime(timeRemaining)}
+            <div className={`tabular font-black text-center text-7xl py-4 tracking-[-0.03em] ${team ? toneText[timerTone(scrub ?? timeRemaining)] : "text-muted"}`}>
+              {formatTime(scrub ?? timeRemaining)}
             </div>
-            <ProgressBar value={duration > 0 ? timeRemaining / duration : 0} tone={tone} className="h-2" />
+            {/* fixed height so pausing never moves the buttons below */}
+            <div className="h-[5rem]">
+            {team && status !== "running" ? (
+              // Paused / not started: drag or nudge to set a custom time
+              <div>
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.max(duration, scrub ?? timeRemaining, 60)}
+                  step={5}
+                  value={Math.max(0, scrub ?? timeRemaining)}
+                  onChange={(e) => setScrub(Number(e.target.value))}
+                  onPointerUp={commitScrub}
+                  onKeyUp={commitScrub}
+                  onBlur={commitScrub}
+                  aria-label="Adjust time remaining"
+                  className="h-2 w-full cursor-pointer accent-fill"
+                />
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {[-30, -10, 10, 30].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => run(() => handleSetTime(timeRemaining + d))}
+                      className={`${btnSecondary} py-1.5 text-sm tabular`}
+                    >
+                      {d > 0 ? `+${d}s` : `−${-d}s`}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-center text-xs font-semibold text-muted">Drag or nudge to set the time, then {status === "paused" ? "Resume" : "Start"}</p>
+              </div>
+            ) : (
+              <ProgressBar value={duration > 0 ? timeRemaining / duration : 0} tone={tone} className="h-2" />
+            )}
+            </div>
 
             {/* Start/Pause always sits in the same spot */}
-            <div className="grid grid-cols-3 gap-3 mt-5">
+            <div className="grid grid-cols-3 gap-3 mt-2">
               {status === "running" ? (
                 <button onClick={() => run(handlePause)} className={`${btn} col-span-2 h-14 text-lg bg-warn text-white`}>
                   ❚❚ Pause
