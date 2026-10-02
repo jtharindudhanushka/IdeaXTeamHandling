@@ -12,7 +12,7 @@ const STAGE_POSTER = "/stage/poseidon-trident-poster.jpg";
 export function BrandStill({ event }: { event: EventConfig; theme?: Theme }) {
   return (
     <div className="scene-in relative h-full">
-      <VideoStage src={STAGE_VIDEO} poster={STAGE_POSTER} dim>
+      <VideoStage src={STAGE_VIDEO} poster={STAGE_POSTER} dim glitch>
         <div className="flex h-full flex-col items-center justify-center gap-[10cqh] pb-[12cqh]">
           <Logo src={event.eventLogo.dark} alt={event.name} className="h-[30cqh]" />
           <div className="flex items-center gap-[5cqw]">

@@ -341,3 +341,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .accent-panel, .breathe-dot, .slot-in, .soft-drift, .soft-drift-alt, .text-sweep { animation: none; }
 }
+
+/* Brief, subtle digital glitch: jitter, RGB-ish colour shift, a sliced band */
+.video-glitch {
+  animation: video-glitch 0.28s steps(1, end) both;
+}
+@keyframes video-glitch {
+  0%   { transform: translate(0, 0); filter: none; }
+  15%  { transform: translate(-0.6%, 0); filter: hue-rotate(25deg) saturate(1.4); }
+  30%  { transform: translate(0.7%, 0.2%); filter: hue-rotate(-30deg) contrast(1.15); }
+  45%  { transform: translate(-0.3%, -0.2%); filter: saturate(1.6) brightness(1.15); }
+  60%  { transform: translate(0.4%, 0); filter: hue-rotate(15deg); }
+  80%  { transform: translate(-0.2%, 0); filter: none; }
+  100% { transform: translate(0, 0); filter: none; }
+}
