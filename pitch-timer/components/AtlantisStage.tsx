@@ -10,10 +10,12 @@ import PatternWaves from "./PatternWaves";
 
 export function AtlantisStage({
   eventId,
+  dim = false,
   className = "",
   children,
 }: {
   eventId: EventId;
+  dim?: boolean; // quieter pattern + dark centre, for screens built around logos
   className?: string;
   children?: React.ReactNode;
 }) {
@@ -41,6 +43,7 @@ export function AtlantisStage({
             color={color}
             backgroundColor="transparent"
             interactive={false}
+            opacity={dim ? 0.55 : 1}
             spacing={11}
             contrast={1.5}
             shine={1.1}
@@ -49,6 +52,14 @@ export function AtlantisStage({
             fadeSize={0.8}
           />
         </div>
+      )}
+
+      {/* dark pool behind centred content */}
+      {dim && (
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 55% 60% at 50% 45%, rgb(1 3 9 / 0.85), rgb(1 3 9 / 0.35) 70%, transparent 100%)" }}
+        />
       )}
 
       {/* keep overlaid text readable */}
