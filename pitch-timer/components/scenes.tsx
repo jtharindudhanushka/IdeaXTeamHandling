@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { PARTNERS, type EventConfig, type Theme } from "@/lib/events";
 import { Logo } from "./brand";
-import { AtlantisStage } from "./AtlantisStage";
+import { VideoStage } from "./VideoStage";
 
-// Still: hackX logo over the wave stage, Ministry + NSF beneath.
+const STAGE_VIDEO = "/stage/poseidon-trident.mp4";
+const STAGE_POSTER = "/stage/poseidon-trident-poster.jpg";
+
+// Still: hackX logo over the looping stage video, Ministry + NSF beneath.
 export function BrandStill({ event }: { event: EventConfig; theme?: Theme }) {
   return (
     <div className="scene-in relative h-full">
-      <AtlantisStage eventId={event.id} dim>
+      <VideoStage src={STAGE_VIDEO} poster={STAGE_POSTER} dim>
         <div className="flex h-full flex-col items-center justify-center gap-[10cqh] pb-[12cqh]">
           <Logo src={event.eventLogo.dark} alt={event.name} className="h-[30cqh]" />
           <div className="flex items-center gap-[5cqw]">
@@ -18,13 +21,13 @@ export function BrandStill({ event }: { event: EventConfig; theme?: Theme }) {
             ))}
           </div>
         </div>
-      </AtlantisStage>
+      </VideoStage>
     </div>
   );
 }
 
 // Still: partner logos one at a time, fading in and out on a white card,
-// in front of the wave stage.
+// in front of the stage video.
 const SLIDE_MS = 4500;
 
 export function PartnerSlideshow({ event }: { event: EventConfig }) {
@@ -37,7 +40,7 @@ export function PartnerSlideshow({ event }: { event: EventConfig }) {
 
   return (
     <div className="scene-in relative h-full">
-      <AtlantisStage eventId={event.id}>
+      <VideoStage src={STAGE_VIDEO} poster={STAGE_POSTER}>
         <div className="flex h-full flex-col items-center justify-center gap-[5cqh] pb-[10cqh]">
           <p className="text-[1.8cqw] font-bold uppercase tracking-[0.4em] text-white/80">Our partners</p>
           <div className="relative h-[46cqh] w-[54cqw] rounded-[4cqh] bg-white shadow-[0_4cqh_10cqh_rgb(0_0_0/0.55)]">
@@ -53,7 +56,7 @@ export function PartnerSlideshow({ event }: { event: EventConfig }) {
             ))}
           </div>
         </div>
-      </AtlantisStage>
+      </VideoStage>
     </div>
   );
 }
