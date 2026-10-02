@@ -18,6 +18,8 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
   const running = session.status === "running";
   const paused = session.status === "paused";
   const slots = Array.from({ length: SLOTS }, (_, i) => ({ team: session.queue[i + 1] ?? null, position: i + 2 }));
+  // teams beyond Up next + the five "Then" rows
+  const more = Math.max(0, session.queue.length - 1 - SLOTS);
 
   return (
     <div className="relative h-full p-[3vh]">
@@ -78,6 +80,11 @@ export function SplitTeams({ session, event }: { session: Session; event: EventC
                   </div>
                 ))}
               </div>
+              {more > 0 && (
+                <p className="pt-[1.4vh] pl-[0.2vw] text-[1.5vw] font-bold text-muted">
+                  + {more} more team{more === 1 ? "" : "s"} waiting
+                </p>
+              )}
             </div>
           </div>
         </div>
